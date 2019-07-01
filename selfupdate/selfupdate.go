@@ -132,19 +132,23 @@ func (u *Updater) wantUpdate() bool {
 
 //CheckIsThereNewVersion to check if there is an update without pulling the binary
 func (u *Updater) CheckIsThereNewVersion()(*semver.Version,error){
-	err := u.fetchInfo()
-	if err != nil {
-		return nil,err
-	}
+	if u.wantUpdate() {
+		err := u.fetchInfo()
+		if err != nil {
+			return nil, err
+		}
 
-	newVer := semver.MustParse(u.Info.Version)
-	currentVer := semver.MustParse(u.CurrentVersion)
-	//if current version is greater than or equal the new version dont update
-	if currentVer.GE(newVer) {
-		return nil,ErrNoAvailableUpdates
-	}
+		newVer := semver.MustParse(u.Info.Version)
+		currentVer := semver.MustParse(u.CurrentVersion)
+		//if current version is greater than or equal the new version dont update
+		if currentVer.GE(newVer) {
+			return nil, ErrNoAvailableUpdates
+		}
 
-	return &newVer,nil
+		return &newVer, nil
+	}else {
+		return nil,ErrNotNowHolder
+	}
 }
 
 func (u *Updater) update() (error) {
