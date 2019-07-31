@@ -25,30 +25,11 @@ Enable your Golang applications to self update.  Inspired by Chrome based on Her
 		ApiURL:         "http://updates.yourdomain.com/",
 		BinURL:         "http://updates.yourdomain.com/",
 		DiffURL:        "http://updates.yourdomain.com/",
-		Dir:            "update/",
-		CmdName:        "myapp", // app name
+		LocalStateDir:  "update/",
+		AppName:        "myApp",
+		DirName:        "cli", // direcroty name
 	}
 
 	if updater != nil {
 		go updater.BackgroundRun()
 	}
-
-### Push Out and Update
-
-    go-selfupdate myapp 1.2
-
-This will create a folder in your project called, *public* you can then rsync or transfer this to your webserver or S3.
-
-If you are cross compiling you can specify a directory:
-
-    go-selfupdate /tmp/mybinares/ 1.2
-
-The directory should contain files with the name, $GOOS-$ARCH. Example:
-
-    windows-386
-    darwin-amd64
-    linux-arm
-
-If you are using [goxc](https://github.com/laher/goxc) you can output the files with this naming format by specifying this config:
-
-    "OutPath": "{{.Dest}}{{.PS}}{{.Version}}{{.PS}}{{.Os}}-{{.Arch}}",

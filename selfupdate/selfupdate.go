@@ -80,10 +80,11 @@ var defaultHTTPRequester = HTTPRequester{}
 type Updater struct {
 	CurrentVersion string    // Currently running version.
 	ApiURL         string    // Base URL for API requests (json files).
-	CmdName        string    // Command name is appended to the ApiURL like http://apiurl/CmdName/. This represents one binary.
+	AppName		   string    // Application name
+	DirName        string    // Directory name is appended to the ApiURL like http://apiurl/DirName/. This represents one binary.
 	BinURL         string    // Base URL for full binary downloads.
 	DiffURL        string    // Base URL for diff downloads.
-	Dir            string    // Directory to store selfupdate state.
+	LocalStateDir        string    // Directory to store selfupdate state.
 	ForceCheck     bool      // Check for update regardless of cktime timestamp
 	Requester      Requester //Optional parameter to override existing http request handler
 	Info           struct {
@@ -100,7 +101,7 @@ func (u *Updater) getExecRelativeDir(dir string) string {
 
 // BackgroundRun starts the update check and apply cycle.
 func (u *Updater) BackgroundRun() error {
-	if err := os.MkdirAll(u.getExecRelativeDir(u.Dir), 0777); err != nil {
+	if err := os.MkdirAll(u.getExecRelativeDir(u.LocalStateDir), 0777); err != nil {
 		// fail
 		return err
 	}
@@ -122,7 +123,7 @@ func (u *Updater) BackgroundRun() error {
 }
 
 func (u *Updater) wantUpdate() bool {
-	path := u.getExecRelativeDir(u.Dir + upcktimePath)
+	path := u.getExecRelativeDir(u.LocalStateDir + upcktimePath)
 	if u.CurrentVersion == "dev" || (!u.ForceCheck && readTime(path).After(time.Now())) {
 		return false
 	}
@@ -191,7 +192,7 @@ func (u *Updater) update() (error) {
 }
 
 func (u *Updater) fetchInfo() error {
-	r, err := u.fetch(u.ApiURL + url.QueryEscape(u.CmdName) + "/" + url.QueryEscape(plat) + ".json")
+	r, err := u.fetch(u.ApiURL + url.QueryEscape(u.DirName) + "/" + url.QueryEscape(plat) + ".json")
 	if err != nil {
 		return err
 	}
@@ -218,7 +219,7 @@ func (u *Updater) fetchAndVerifyPatch(old io.Reader) ([]byte, error) {
 }
 
 func (u *Updater) fetchAndApplyPatch(old io.Reader) ([]byte, error) {
-	r, err := u.fetch(u.DiffURL + url.QueryEscape(u.CmdName) + "/" + url.QueryEscape(u.CurrentVersion) + "/" + url.QueryEscape(u.Info.Version) + "/" + url.QueryEscape(plat))
+	r, err := u.fetch(u.DiffURL + url.QueryEscape(u.DirName) + "/" + url.QueryEscape(u.CurrentVersion) + "/" + url.QueryEscape(u.Info.Version) + "/" + url.QueryEscape(plat))
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +242,7 @@ func (u *Updater) fetchAndVerifyFullBin() ([]byte, error) {
 }
 
 func (u *Updater) fetchBin() ([]byte, error) {
-	r, err := u.fetch(u.BinURL + url.QueryEscape(u.CmdName) + "/" + url.QueryEscape(plat) + ".zip")
+	r, err := u.fetch(u.BinURL + url.QueryEscape(u.DirName) + "/" + url.QueryEscape(u.AppName)+"-"+url.QueryEscape(plat) + ".zip")
 	if err != nil {
 		return nil, err
 	}
